@@ -25,7 +25,7 @@ import android.media.MediaRecorder;
 import android.media.MediaActionSound;
 import android.os.Build;
 import android.os.Handler;
-import androidx.collection.SparseArrayCompat;
+import android.support.v4.util.SparseArrayCompat;
 import android.util.Log;
 import android.view.SurfaceHolder;
 

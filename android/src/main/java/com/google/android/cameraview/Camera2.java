@@ -16,7 +16,6 @@
 
 package com.google.android.cameraview;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
@@ -38,7 +37,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaRecorder;
 import android.media.MediaActionSound;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
@@ -64,7 +63,7 @@ import org.reactnative.camera.utils.ObjectUtils;
 
 
 @SuppressWarnings("MissingPermission")
-@TargetApi(21)
+@android.support.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, MediaRecorder.OnErrorListener {
 
     private static final String TAG = "Camera2";
