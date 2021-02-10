@@ -22,7 +22,7 @@
     "@semantic-release/npm": "^7.0.5",
     "@semantic-release/release-notes-generator": "^9.0.1",
     "@types/react": "^16.8.3",
-    "@types/react-native": "^0.63.13",
+    "@types/react-native": "^0.56.18",
     "babel-eslint": "^10.1.0",
     "commitizen": "^4.2.1",
     "eslint": "^7.8.0",
@@ -35,7 +35,7 @@
     "pre-commit": "^1.2.2",
     "prettier": "^2.1.1",
     "react": "16.13.1",
-    "react-native": "0.63.2",
+    "react-native": "0.59.0",
     "semantic-release": "^17.1.1"
   },
   "homepage": "https://github.com/react-native-community/react-native-camera",
