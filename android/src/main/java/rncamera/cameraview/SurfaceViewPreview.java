@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.android.cameraview;
+package rncamera.cameraview;
 
 import android.content.Context;
 import android.support.v4.view.ViewCompat;

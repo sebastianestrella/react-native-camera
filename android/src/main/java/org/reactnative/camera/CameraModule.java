@@ -3,20 +3,17 @@ package org.reactnative.camera;
 import android.Manifest;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.facebook.react.bridge.*;
-import com.facebook.react.common.build.ReactBuildConfig;
 import com.facebook.react.uimanager.NativeViewHierarchyManager;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
-import com.google.android.cameraview.AspectRatio;
+import rncamera.cameraview.AspectRatio;
 import com.google.zxing.BarcodeFormat;
 import org.reactnative.barcodedetector.BarcodeFormatUtils;
 import org.reactnative.camera.utils.ScopedContext;
 import org.reactnative.facedetector.RNFaceDetector;
-import com.google.android.cameraview.Size;
+import rncamera.cameraview.Size;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -131,15 +128,6 @@ public class CameraModule extends ReactContextBaseJavaModule {
             put("BarcodeType", BarcodeFormatUtils.REVERSE_FORMATS);
             put("BarcodeMode", getGoogleVisionBarcodeModeConstants());
           }
-        }));
-        put("Orientation", Collections.unmodifiableMap(new HashMap<String, Object>() {
-            {
-              put("auto", Constants.ORIENTATION_AUTO);
-              put("portrait", Constants.ORIENTATION_UP);
-              put("portraitUpsideDown", Constants.ORIENTATION_DOWN);
-              put("landscapeLeft", Constants.ORIENTATION_LEFT);
-              put("landscapeRight", Constants.ORIENTATION_RIGHT);
-            }
         }));
       }
 

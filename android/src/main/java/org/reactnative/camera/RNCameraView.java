@@ -21,7 +21,7 @@ import android.view.View;
 import android.os.AsyncTask;
 import com.facebook.react.bridge.*;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.google.android.cameraview.CameraView;
+import rncamera.cameraview.CameraView;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
@@ -109,7 +109,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
       }
 
       @Override
-      public void onPictureTaken(CameraView cameraView, final byte[] data, int deviceOrientation) {
+      public void onPictureTaken(CameraView cameraView, final byte[] data) {
         Promise promise = mPictureTakenPromises.poll();
         ReadableMap options = mPictureTakenOptions.remove(promise);
         if (options.hasKey("fastMode") && options.getBoolean("fastMode")) {
@@ -117,10 +117,10 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
         }
         final File cacheDirectory = mPictureTakenDirectories.remove(promise);
         if(Build.VERSION.SDK_INT >= 11/*HONEYCOMB*/) {
-          new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, deviceOrientation, RNCameraView.this)
+          new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, RNCameraView.this)
                   .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
-          new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, deviceOrientation, RNCameraView.this)
+          new ResolveTakenPictureAsyncTask(data, promise, options, cacheDirectory, RNCameraView.this)
                   .execute();
         }
         RNCameraViewHelper.emitPictureTakenEvent(cameraView);
@@ -141,13 +141,11 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
       }
 
       @Override
-      public void onVideoRecorded(CameraView cameraView, String path, int videoOrientation, int deviceOrientation) {
+      public void onVideoRecorded(CameraView cameraView, String path) {
         if (mVideoRecordedPromise != null) {
           if (path != null) {
             WritableMap result = Arguments.createMap();
             result.putBoolean("isRecordingInterrupted", mIsRecordingInterrupted);
-            result.putInt("videoOrientation", videoOrientation);
-            result.putInt("deviceOrientation", deviceOrientation);
             result.putString("uri", RNFileUtils.uriFromFile(new File(path)).toString());
             mVideoRecordedPromise.resolve(result);
           } else {
@@ -161,7 +159,7 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
 
       @Override
       public void onFramePreview(CameraView cameraView, byte[] data, int width, int height, int rotation) {
-        int correctRotation = RNCameraViewHelper.getCorrectCameraRotation(rotation, getFacing(), getCameraOrientation());
+        int correctRotation = RNCameraViewHelper.getCorrectCameraRotation(rotation, getFacing());
         boolean willCallBarCodeTask = mShouldScanBarCodes && !barCodeScannerTaskLock && cameraView instanceof BarCodeScannerAsyncTaskDelegate;
         boolean willCallFaceTask = mShouldDetectFaces && !faceDetectorTaskLock && cameraView instanceof FaceDetectorAsyncTaskDelegate;
         boolean willCallGoogleBarcodeTask = mShouldGoogleDetectBarcodes && !googleBarcodeDetectorTaskLock && cameraView instanceof BarcodeDetectorAsyncTaskDelegate;
@@ -305,23 +303,17 @@ public class RNCameraView extends CameraView implements LifecycleEventListener, 
 
           CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
           if (options.hasKey("quality")) {
-            profile = RNCameraViewHelper.getCamcorderProfile(options.getInt("quality"));
-          }
-          if (options.hasKey("videoBitrate")) {
-            profile.videoBitRate = options.getInt("videoBitrate");
-          }
-
-          boolean recordAudio = true;
-          if (options.hasKey("mute")) {
-            recordAudio = !options.getBoolean("mute");
+            final int qualityOption = options.getInt("quality");
+            profile = RNCameraViewHelper.getCamcorderProfile(qualityOption);
+            if (options.hasKey("videoBitrate")) {
+              final int videoBitrate = options.getInt("videoBitrate");
+              profile = RNCameraViewHelper.getCamcorderProfile(qualityOption, videoBitrate);
+            }
           }
 
-          int orientation = Constants.ORIENTATION_AUTO;
-          if (options.hasKey("orientation")) {
-            orientation = options.getInt("orientation");
-          }
+          boolean recordAudio = !options.hasKey("mute");
 
-          if (RNCameraView.super.record(path, maxDuration * 1000, maxFileSize, recordAudio, profile, orientation, fps)) {
+          if (RNCameraView.super.record(path, maxDuration * 1000, maxFileSize, recordAudio, profile, fps)) {
             mIsRecording = true;
             mVideoRecordedPromise = promise;
           } else {

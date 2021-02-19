@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.android.cameraview;
+package rncamera.cameraview;
 
 import android.os.Parcel;
 import android.os.Parcelable;

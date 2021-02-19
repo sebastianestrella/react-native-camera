@@ -15,7 +15,6 @@ import org.reactnative.camera.utils.RNFileUtils;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 
 import java.io.ByteArrayInputStream;
@@ -31,15 +30,13 @@ public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, Writable
     private byte[] mImageData;
     private ReadableMap mOptions;
     private File mCacheDirectory;
-    private int mDeviceOrientation;
     private PictureSavedDelegate mPictureSavedDelegate;
 
-    public ResolveTakenPictureAsyncTask(byte[] imageData, Promise promise, ReadableMap options, File cacheDirectory, int deviceOrientation, PictureSavedDelegate delegate) {
+    public ResolveTakenPictureAsyncTask(byte[] imageData, Promise promise, ReadableMap options, File cacheDirectory, PictureSavedDelegate delegate) {
         mPromise = promise;
         mOptions = options;
         mImageData = imageData;
         mCacheDirectory = cacheDirectory;
-        mDeviceOrientation = deviceOrientation;
         mPictureSavedDelegate = delegate;
     }
 
@@ -66,10 +63,6 @@ public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, Writable
         ReadableMap exifExtraData = null;
 
         boolean orientationChanged = false;
-
-        response.putInt("deviceOrientation", mDeviceOrientation);
-        response.putInt("pictureOrientation", mOptions.hasKey("orientation") ? mOptions.getInt("orientation") : mDeviceOrientation);
-
 
         try{
             // this replaces the skipProcessing flag, we will process only if needed, and in

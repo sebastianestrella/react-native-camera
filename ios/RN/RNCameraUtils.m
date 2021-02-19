@@ -104,12 +104,6 @@
 {
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
     CIImage *ciImage = [CIImage imageWithCVPixelBuffer:imageBuffer];
-    // set correct orientation
-    __block UIInterfaceOrientation orientation;
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        orientation = [[UIApplication sharedApplication] statusBarOrientation];
-    });
-    UIInterfaceOrientation curOrientation = orientation;
     NSInteger orientationToApply = 1;
     BOOL isBackCamera = position == 1;
     if (curOrientation == UIInterfaceOrientationLandscapeLeft){

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.android.cameraview;
+package rncamera.cameraview;
 
 import android.media.CamcorderProfile;
 import android.view.View;
@@ -101,7 +101,7 @@ abstract class CameraViewImpl {
     abstract void takePicture(ReadableMap options);
 
     abstract boolean record(String path, int maxDuration, int maxFileSize,
-                            boolean recordAudio, CamcorderProfile profile, int orientation, int fps);
+                            boolean recordAudio, CamcorderProfile profile, int fps);
 
     abstract void stopRecording();
 
@@ -109,11 +109,7 @@ abstract class CameraViewImpl {
 
     abstract void resumeRecording();
 
-    abstract int getCameraOrientation();
-
     abstract void setDisplayOrientation(int displayOrientation);
-
-    abstract void setDeviceOrientation(int deviceOrientation);
 
     abstract void setFocusArea(float x, float y);
 
@@ -157,9 +153,9 @@ abstract class CameraViewImpl {
 
         void onCameraClosed();
 
-        void onPictureTaken(byte[] data, int deviceOrientation);
+        void onPictureTaken(byte[] data);
 
-        void onVideoRecorded(String path, int videoOrientation, int deviceOrientation);
+        void onVideoRecorded(String path);
 
         void onRecordingStart(String path, int videoOrientation, int deviceOrientation);
 

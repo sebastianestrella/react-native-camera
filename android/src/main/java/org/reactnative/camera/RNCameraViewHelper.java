@@ -15,7 +15,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.uimanager.UIManagerModule;
-import com.google.android.cameraview.CameraView;
+import rncamera.cameraview.CameraView;
 import com.google.zxing.Result;
 import org.reactnative.camera.events.*;
 import org.reactnative.barcodedetector.RNBarcodeDetector;
@@ -157,6 +157,8 @@ public class RNCameraViewHelper {
       {"int", ExifInterface.TAG_RW2_SENSOR_TOP_BORDER},
       {"int", ExifInterface.TAG_RW2_ISO},
   };
+
+  public static final int VIDEO_4x3_FRAME_WIDTH = 640;
 
   // Run all events on native modules queue thread since they might be fired
   // from other non RN threads.
@@ -337,19 +339,13 @@ public class RNCameraViewHelper {
 
   // Utilities
 
-  public static int getCorrectCameraRotation(int rotation, int facing, int cameraOrientation) {
+  public static int getCorrectCameraRotation(int rotation, int facing) {
     if (facing == CameraView.FACING_FRONT) {
       // Tested the below line and there's no need to do the mirror calculation
-      return (cameraOrientation + rotation) % 360;
+      return (rotation - 90 + 360) % 360;
     } else {
-      final int landscapeFlip = rotationIsLandscape(rotation) ? 180 : 0;
-      return (cameraOrientation - rotation + landscapeFlip) % 360;
+      return (-rotation + 90 + 360) % 360;
     }
-  }
-
-  private static boolean rotationIsLandscape(int rotation) {
-    return (rotation == Constants.LANDSCAPE_90 ||
-            rotation == Constants.LANDSCAPE_270);
   }
 
   private static int getCamcorderProfileQualityFromCameraModuleConstant(int quality) {
@@ -376,8 +372,24 @@ public class RNCameraViewHelper {
     if (CamcorderProfile.hasProfile(camcorderQuality)) {
       profile = CamcorderProfile.get(camcorderQuality);
       if (quality == CameraModule.VIDEO_4x3) {
-        profile.videoFrameWidth = 640;
+        profile.videoFrameWidth = VIDEO_4x3_FRAME_WIDTH;
       }
+    }
+    return profile;
+  }
+
+  public static CamcorderProfile getCamcorderProfile(int quality, int videoBitrate) {
+    CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+    final int defaultVideoBitrate = 5000000;
+    int camcorderQuality = getCamcorderProfileQualityFromCameraModuleConstant(quality);
+    if (CamcorderProfile.hasProfile(camcorderQuality)) {
+      profile = CamcorderProfile.get(camcorderQuality);
+      if (quality == CameraModule.VIDEO_4x3) {
+        profile.videoFrameWidth = VIDEO_4x3_FRAME_WIDTH;
+      }
+    }
+    if (videoBitrate >= defaultVideoBitrate) {
+      profile.videoBitRate = videoBitrate;
     }
     return profile;
   }

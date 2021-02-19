@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.android.cameraview;
+package rncamera.cameraview;
 
 import android.annotation.TargetApi;
 import android.content.Context;

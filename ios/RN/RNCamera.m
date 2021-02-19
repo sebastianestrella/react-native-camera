@@ -729,11 +729,7 @@ BOOL _sessionInterrupted = NO;
 - (void)takePictureWithOrientation:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{
     [self.sensorOrientationChecker getDeviceOrientationWithBlock:^(UIInterfaceOrientation orientation) {
         NSMutableDictionary *tmpOptions = [options mutableCopy];
-        if ([tmpOptions valueForKey:@"orientation"] == nil) {
-            tmpOptions[@"orientation"] = [NSNumber numberWithInteger:[self.sensorOrientationChecker convertToAVCaptureVideoOrientation:orientation]];
-        }
-        self.deviceOrientation = [NSNumber numberWithInteger:orientation];
-        self.orientation = [NSNumber numberWithInteger:[tmpOptions[@"orientation"] integerValue]];
+        tmpOptions[@"orientation"]=[NSNumber numberWithInteger:[self.sensorOrientationChecker convertToAVCaptureVideoOrientation: orientation]];
         [self takePicture:tmpOptions resolve:resolve reject:reject];
     }];
 }
@@ -746,12 +742,13 @@ BOOL _sessionInterrupted = NO;
         return;
     }
 
-    if (!self.deviceOrientation) {
+    int orientation;
+    if ([options[@"orientation"] integerValue]) {
+        orientation = [options[@"orientation"] integerValue];
+    } else {
         [self takePictureWithOrientation:options resolve:resolve reject:reject];
         return;
     }
-
-    NSInteger orientation = [options[@"orientation"] integerValue];
 
     AVCaptureConnection *connection = [self.stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
     [connection setVideoOrientation:orientation];
@@ -763,7 +760,7 @@ BOOL _sessionInterrupted = NO;
                     [[self.previewLayer connection] setEnabled:NO];
                 }
 
-                BOOL useFastMode = [options valueForKey:@"fastMode"] != nil && [options[@"fastMode"] boolValue];
+                BOOL useFastMode = options[@"fastMode"] && [options[@"fastMode"] boolValue];
                 if (useFastMode) {
                     resolve(nil);
                 }
@@ -962,11 +959,6 @@ BOOL _sessionInterrupted = NO;
                         //[RNImageUtils updatePhotoMetadata:imageSampleBuffer withAdditionalData:@{ @"Orientation": @(imageRotation) } inResponse:response]; // TODO
                     }
 
-                    response[@"pictureOrientation"] = @([self.orientation integerValue]);
-                    response[@"deviceOrientation"] = @([self.deviceOrientation integerValue]);
-                    self.orientation = nil;
-                    self.deviceOrientation = nil;
-
                     if (useFastMode) {
                         [self onPictureSaved:@{@"data": response, @"id": options[@"id"]}];
                     } else {
@@ -1001,11 +993,7 @@ BOOL _sessionInterrupted = NO;
 - (void)recordWithOrientation:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{
     [self.sensorOrientationChecker getDeviceOrientationWithBlock:^(UIInterfaceOrientation orientation) {
         NSMutableDictionary *tmpOptions = [options mutableCopy];
-        if ([tmpOptions valueForKey:@"orientation"] == nil) {
-            tmpOptions[@"orientation"] = [NSNumber numberWithInteger:[self.sensorOrientationChecker convertToAVCaptureVideoOrientation: orientation]];
-        }
-        self.deviceOrientation = [NSNumber numberWithInteger:orientation];
-        self.orientation = [NSNumber numberWithInteger:[tmpOptions[@"orientation"] integerValue]];
+        tmpOptions[@"orientation"]=[NSNumber numberWithInteger:[self.sensorOrientationChecker convertToAVCaptureVideoOrientation: orientation]];
         [self record:tmpOptions resolve:resolve reject:reject];
     }];
 }
@@ -1016,12 +1004,13 @@ BOOL _sessionInterrupted = NO;
         return;
     }
 
-    if (!self.deviceOrientation) {
+    int orientation;
+    if ([options[@"orientation"] integerValue]) {
+        orientation = [options[@"orientation"] integerValue];
+    } else {
         [self recordWithOrientation:options resolve:resolve reject:reject];
         return;
     }
-
-    NSInteger orientation = [options[@"orientation"] integerValue];
 
     // some operations will change our config
     // so we batch config updates, even if inner calls
@@ -1895,35 +1884,21 @@ BOOL _sessionInterrupted = NO;
         }
     }
     if (success && self.videoRecordedResolve != nil) {
-        NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
-
-        void (^resolveBlock)(void) = ^() {
-            self.videoRecordedResolve(result);
-        };
-
-        result[@"uri"] = outputFileURL.absoluteString;
-        result[@"videoOrientation"] = @([self.orientation integerValue]);
-        result[@"deviceOrientation"] = @([self.deviceOrientation integerValue]);
-        result[@"isRecordingInterrupted"] = @(self.isRecordingInterrupted);
-
-
         if (@available(iOS 10, *)) {
-            AVVideoCodecType videoCodec = self.videoCodecType;
-            if (videoCodec == nil) {
-                videoCodec = [self.movieFileOutput.availableVideoCodecTypes firstObject];
-            }
-            result[@"codec"] = videoCodec;
-
-            if ([connections[0] isVideoMirrored]) {
-                [self mirrorVideo:outputFileURL completion:^(NSURL *mirroredURL) {
-                    result[@"uri"] = mirroredURL.absoluteString;
-                    resolveBlock();
-                }];
-                return;
-            }
-        }
-
-        resolveBlock();
+          AVVideoCodecType videoCodec = self.videoCodecType;
+          if (videoCodec == nil) {
+              videoCodec = [self.movieFileOutput.availableVideoCodecTypes firstObject];
+          }
+          if ([connections[0] isVideoMirrored]) {
+            [self mirrorVideo:outputFileURL completion:^(NSURL *mirroredURL) {
+                self.videoRecordedResolve(@{ @"uri": mirroredURL.absoluteString, @"codec":videoCodec });
+            }];
+          } else {
+            self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString, @"codec":videoCodec });
+          }
+      } else {
+          self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString });
+      }
     } else if (self.videoRecordedReject != nil) {
         self.videoRecordedReject(@"E_RECORDING_FAILED", @"An error occurred while recording a video.", error);
     }
@@ -1936,8 +1911,6 @@ BOOL _sessionInterrupted = NO;
     self.videoRecordedResolve = nil;
     self.videoRecordedReject = nil;
     self.videoCodecType = nil;
-    self.deviceOrientation = nil;
-    self.orientation = nil;
     self.isRecordingInterrupted = NO;
 
     if ([self.textDetector isRealDetector] || [self.faceDetector isRealDetector]) {
@@ -2263,10 +2236,6 @@ BOOL _sessionInterrupted = NO;
             }];
         }
     }
-}
-
-- (bool)isRecording {
-    return self.movieFileOutput != nil ? self.movieFileOutput.isRecording : NO;
 }
 
 @end

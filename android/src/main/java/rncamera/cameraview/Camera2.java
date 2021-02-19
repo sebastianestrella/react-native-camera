@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.android.cameraview;
+package rncamera.cameraview;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
@@ -194,7 +194,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
                     buffer.get(data);
                     if (image.getFormat() == ImageFormat.JPEG) {
                         // @TODO: implement deviceOrientation
-                        mCallback.onPictureTaken(data, 0);
+                        mCallback.onPictureTaken(data);
                     } else {
                         mCallback.onFramePreview(data, image.getWidth(), image.getHeight(), mDisplayOrientation);
                     }
@@ -349,7 +349,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
                 mCallback.onRecordingEnd();
 
                 // @TODO: implement videoOrientation and deviceOrientation calculation
-                mCallback.onVideoRecorded(mVideoPath, 0, 0);
+                mCallback.onVideoRecorded(mVideoPath);
                 mIsRecording = false;
             }
         }
@@ -571,7 +571,7 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
     }
 
     @Override
-    boolean record(String path, int maxDuration, int maxFileSize, boolean recordAudio, CamcorderProfile profile, int orientation, int fps) {
+    boolean record(String path, int maxDuration, int maxFileSize, boolean recordAudio, CamcorderProfile profile, int fps) {
         if (!mIsRecording) {
             setUpMediaRecorder(path, maxDuration, maxFileSize, recordAudio, profile);
             try {
@@ -747,23 +747,10 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
     }
 
     @Override
-    int getCameraOrientation() {
-        return mCameraOrientation;
-    }
-
-    @Override
     void setDisplayOrientation(int displayOrientation) {
         mDisplayOrientation = displayOrientation;
         mPreview.setDisplayOrientation(mDisplayOrientation);
     }
-
-
-    @Override
-    void setDeviceOrientation(int deviceOrientation) {
-        mDeviceOrientation = deviceOrientation;
-        //mPreview.setDisplayOrientation(deviceOrientation); // this is not needed and messes up the display orientation
-    }
-
 
     // This is a helper method to query Camera2 legacy status so we don't need
     // to instantiate and set all its props in order to check if it is legacy or not
@@ -906,8 +893,6 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
         if (!mPreviewSizes.ratios().contains(mAspectRatio)) {
             mAspectRatio = mPreviewSizes.ratios().iterator().next();
         }
-
-        mCameraOrientation = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
     }
 
     protected void collectPictureSizes(SizeMap sizes, StreamConfigurationMap map) {
@@ -1394,12 +1379,17 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
         mMediaRecorder.setOutputFile(path);
         mVideoPath = path;
 
-        CamcorderProfile camProfile = profile;
-        if (!CamcorderProfile.hasProfile(Integer.parseInt(mCameraId), profile.quality)) {
-            camProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+//        CamcorderProfile camProfile = profile;
+//        if (!CamcorderProfile.hasProfile(Integer.parseInt(mCameraId), profile.quality)) {
+//            camProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+//        }
+//        camProfile.videoBitRate = profile.videoBitRate;
+//        setCamcorderProfile(camProfile, recordAudio);
+        if (CamcorderProfile.hasProfile(Integer.parseInt(mCameraId), profile.quality)) {
+            setCamcorderProfile(profile, recordAudio);
+        } else {
+            setCamcorderProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH), recordAudio);
         }
-        camProfile.videoBitRate = profile.videoBitRate;
-        setCamcorderProfile(camProfile, recordAudio);
 
         mMediaRecorder.setOrientationHint(getOutputRotation());
 
@@ -1448,11 +1438,11 @@ class Camera2 extends CameraViewImpl implements MediaRecorder.OnInfoListener, Me
 
         if (mVideoPath == null || !new File(mVideoPath).exists()) {
             // @TODO: implement videoOrientation and deviceOrientation calculation
-            mCallback.onVideoRecorded(null, 0 , 0);
+            mCallback.onVideoRecorded(null);
             return;
         }
         // @TODO: implement videoOrientation and deviceOrientation calculation
-        mCallback.onVideoRecorded(mVideoPath, 0, 0);
+        mCallback.onVideoRecorded(mVideoPath);
         mVideoPath = null;
     }
 
