@@ -88,6 +88,7 @@
     if(acceleration.y >= 0.75) {
         return UIInterfaceOrientationPortraitUpsideDown;
     }
+    return [[UIApplication sharedApplication] statusBarOrientation];
 }
 
 - (AVCaptureVideoOrientation)convertToAVCaptureVideoOrientation:(UIInterfaceOrientation)orientation
