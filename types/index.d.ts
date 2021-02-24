@@ -21,7 +21,6 @@ type Orientation = Readonly<{
   portrait: any;
   portraitUpsideDown: any;
 }>;
-type OrientationNumber = 1 | 2 | 3 | 4;
 type AutoFocus = Readonly<{ on: any; off: any }>;
 type VideoStabilization = Readonly<{ off: any; standard: any; cinematic: any; auto: any }>;
 type FlashMode = Readonly<{ on: any; off: any; torch: any; auto: any }>;
@@ -73,8 +72,8 @@ type VideoCodec = Readonly<{
   AppleProRes4444: symbol;
 }>;
 type ImageType = Readonly<{
-  'jpeg': any;
-  'png': any;
+  jpeg: any;
+  png: any;
 }>;
 
 type FaceDetectionClassifications = Readonly<{ all: any; none: any }>;
@@ -100,20 +99,7 @@ type GoogleVisionBarcodeMode = Readonly<{ NORMAL: any; ALTERNATE: any; INVERTED:
 // FaCC (Function as Child Components)
 type Self<T> = { [P in keyof T]: P };
 type CameraStatus = Readonly<Self<{ READY: any; PENDING_AUTHORIZATION: any; NOT_AUTHORIZED: any }>>;
-type RecordAudioPermissionStatus = Readonly<
-  Self<{
-    AUTHORIZED: 'AUTHORIZED';
-    PENDING_AUTHORIZATION: 'PENDING_AUTHORIZATION';
-    NOT_AUTHORIZED: 'NOT_AUTHORIZED';
-  }>
->;
-type FaCC = (
-  params: {
-    camera: RNCamera;
-    status: keyof CameraStatus;
-    recordAudioPermissionStatus: keyof RecordAudioPermissionStatus;
-  },
-) => JSX.Element;
+type FaCC = (params: { camera: RNCamera; status: keyof CameraStatus }) => JSX.Element;
 
 export interface Constants {
   CameraStatus: CameraStatus;
@@ -133,13 +119,6 @@ export interface Constants {
   GoogleVisionBarcodeDetection: {
     BarcodeType: GoogleVisionBarcodeType;
     BarcodeMode: GoogleVisionBarcodeMode;
-  };
-  Orientation: {
-    auto: 'auto';
-    landscapeLeft: 'landscapeLeft';
-    landscapeRight: 'landscapeRight';
-    portrait: 'portrait';
-    portraitUpsideDown: 'portraitUpsideDown';
   };
   VideoStabilization: VideoStabilization;
 }
@@ -190,10 +169,6 @@ export interface RNCameraProps {
   captureAudio?: boolean;
 
   onCameraReady?(): void;
-  onStatusChange?(event: {
-    cameraStatus: keyof CameraStatus;
-    recordAudioPermissionStatus: keyof RecordAudioPermissionStatus;
-  }): void;
   onMountError?(error: { message: string }): void;
 
   onPictureTaken?(): void;
@@ -418,13 +393,12 @@ export interface TrackedTextFeature extends TrackedTextFeatureRecursive {
 
 interface TakePictureOptions {
   quality?: number;
-  orientation?: keyof Orientation | OrientationNumber;
+  orientation?: keyof Orientation;
   base64?: boolean;
   exif?: boolean;
   width?: number;
   mirrorImage?: boolean;
   doNotSave?: boolean;
-  pauseAfterCapture?: boolean;
   writeExif?: boolean | { [name: string]: any };
 
   /** Android only */
@@ -441,13 +415,10 @@ export interface TakePictureResponse {
   uri: string;
   base64?: string;
   exif?: { [name: string]: any };
-  pictureOrientation: number;
-  deviceOrientation: number;
 }
 
 interface RecordOptions {
   quality?: keyof VideoQuality;
-  orientation?: keyof Orientation | OrientationNumber;
   maxDuration?: number;
   maxFileSize?: number;
   mute?: boolean;
@@ -463,8 +434,6 @@ interface RecordOptions {
 export interface RecordResponse {
   /** Path to the video saved on your app's cache directory. */
   uri: string;
-  videoOrientation: number;
-  deviceOrientation: number;
   isRecordingInterrupted: boolean;
   /** iOS only */
   codec: VideoCodec[keyof VideoCodec];

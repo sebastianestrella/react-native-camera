@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.android.cameraview;
+package rncamera.cameraview;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Rect;
-import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.os.Build;
 import android.os.HandlerThread;
@@ -33,7 +31,6 @@ import android.support.v4.os.ParcelableCompat;
 import android.support.v4.os.ParcelableCompatCreatorCallbacks;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.graphics.SurfaceTexture;
@@ -137,9 +134,8 @@ public class CameraView extends FrameLayout {
         // Display orientation detector
         mDisplayOrientationDetector = new DisplayOrientationDetector(context) {
             @Override
-            public void onDisplayOrientationChanged(int displayOrientation, int deviceOrientation) {
+            public void onDisplayOrientationChanged(int displayOrientation) {
                 mImpl.setDisplayOrientation(displayOrientation);
-                mImpl.setDeviceOrientation(deviceOrientation);
             }
         };
     }
@@ -556,16 +552,6 @@ public class CameraView extends FrameLayout {
         return mImpl.getExposureCompensation();
     }
 
-
-    /**
-     * Gets the camera orientation relative to the devices native orientation.
-     *
-     * @return The orientation of the camera.
-     */
-    public int getCameraOrientation() {
-        return mImpl.getCameraOrientation();
-    }
-
     /**
      * Sets the auto focus point.
      *
@@ -620,7 +606,7 @@ public class CameraView extends FrameLayout {
 
     /**
      * Take a picture. The result will be returned to
-     * {@link Callback#onPictureTaken(CameraView, byte[], int)}.
+     * {@link Callback#onPictureTaken(CameraView, byte[])}.
      */
     public void takePicture(ReadableMap options) {
         mImpl.takePicture(options);
@@ -637,8 +623,8 @@ public class CameraView extends FrameLayout {
      * fires {@link Callback#onRecordingStart(CameraView, String, int, int)} and {@link Callback#onRecordingEnd(CameraView)}.
      */
     public boolean record(String path, int maxDuration, int maxFileSize,
-                          boolean recordAudio, CamcorderProfile profile, int orientation, int fps) {
-        return mImpl.record(path, maxDuration, maxFileSize, recordAudio, profile, orientation, fps);
+                          boolean recordAudio, CamcorderProfile profile, int fps) {
+        return mImpl.record(path, maxDuration, maxFileSize, recordAudio, profile, fps);
     }
 
     public void stopRecording() {
@@ -705,9 +691,9 @@ public class CameraView extends FrameLayout {
         }
 
         @Override
-        public void onPictureTaken(byte[] data, int deviceOrientation) {
+        public void onPictureTaken(byte[] data) {
             for (Callback callback : mCallbacks) {
-                callback.onPictureTaken(CameraView.this, data, deviceOrientation);
+                callback.onPictureTaken(CameraView.this, data);
             }
         }
 
@@ -726,9 +712,9 @@ public class CameraView extends FrameLayout {
         }
 
         @Override
-        public void onVideoRecorded(String path, int videoOrientation, int deviceOrientation) {
+        public void onVideoRecorded(String path) {
             for (Callback callback : mCallbacks) {
-                callback.onVideoRecorded(CameraView.this, path, videoOrientation, deviceOrientation);
+                callback.onVideoRecorded(CameraView.this, path);
             }
         }
 
@@ -864,7 +850,7 @@ public class CameraView extends FrameLayout {
          * @param cameraView The associated {@link CameraView}.
          * @param data       JPEG data.
          */
-        public void onPictureTaken(CameraView cameraView, byte[] data, int deviceOrientation) {}
+        public void onPictureTaken(CameraView cameraView, byte[] data) {}
 
         /**
          * Called when a video recording starts
@@ -888,7 +874,7 @@ public class CameraView extends FrameLayout {
          * @param cameraView The associated {@link CameraView}.
          * @param path       Path to recoredd video file.
          */
-        public void onVideoRecorded(CameraView cameraView, String path, int videoOrientation, int deviceOrientation) {}
+        public void onVideoRecorded(CameraView cameraView, String path) {}
 
         public void onFramePreview(CameraView cameraView, byte[] data, int width, int height, int orientation) {}
 

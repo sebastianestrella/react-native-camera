@@ -5,7 +5,7 @@ import android.util.SparseArray;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.google.android.cameraview.CameraView;
+import rncamera.cameraview.CameraView;
 import com.google.android.gms.vision.face.Face;
 
 import org.reactnative.camera.utils.ImageDimensions;
